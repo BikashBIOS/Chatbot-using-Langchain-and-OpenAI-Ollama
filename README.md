@@ -35,3 +35,30 @@ Checks if the user has typed a question and presses enter. If true, it invokes t
 2. Create app1.py
 3. Use the above same code for Ollama also -> Just replace the OpenAI model with Ollama model.
 4. To run -> streamlit app1.py
+
+
+## RagBot -> Upload PDF and ask questions
+1. Defining the Prompt Template
+What it does: Instructs the LLM on how to behave. It mandates strict reliance on the custom data provided inside the <context> blocks.
+
+Document Ingestion and Vectorization :
+2. This block runs only when a user clicks the ingestion button. It prepares the data for searching.
+What it does: Declares an ingestion function. Streamlit reruns the whole script from top to bottom every time a user interacts with the UI. The if "vectors" not in st.session_state: condition ensures that expensive document parsing and vector calculations only happen once, saving memory and time by caching them inside Streamlit's state storage.
+3. Initializes an Ollama embedding engine running on your local machine to calculate the mathematical representations of text.
+4. Targets a local folder named pdfs and loads every single page of text contained within those files into an array of objects.
+5. Configures a text-splitting rule. It will chop pages into sections of up to 1000 characters each. If a paragraph splits awkwardly, it uses an overlap of 200 characters to preserve context across the boundary.
+6. Executes the chunking rule, taking the raw full-length PDF pages and chopping them down into hundreds of shorter documents.
+7. Passes the text chunks to the embedding model, calculates their mathematical coordinates, and loads them into a fast-searching FAISS Vector Database stored in RAM.
+
+The Streamlit UI Control Elements :
+8. Renders an interactive input box on the webpage allowing users to type questions.
+9. Renders a button. Clicking it executes the create_vector_embeddings() process outlined above, and prints a green success alert banner on screen when finished.
+
+Execution and RAG Processing :
+10. Combines your Groq LLM brain and your structured instructions template together. This chain knows exactly how to format context texts and questions into a unified string.
+11. Converts the raw FAISS database into a functional Retriever object, enabling it to accept search strings and return the top matching text snippets.
+12. Assembles the full operational pipeline. It coordinates capturing the query, pulling the context documents using the retriever, sending everything to the prompt, and piping it directly to the model.
+13. Captures the starting timestamp, fires the query to the execution chain via .invoke(), tracks the end timestamp, and logs the generation time directly into your development terminal log.
+14. Extracts the generated text from the JSON output payload and presents it neatly to the user on the screen.
+15. Creates a collapsible accordion UI component. Clicking it opens up a list view showing the exact document fragments pulled from your local PDFs that were passed to the LLM to formulate the final response.
+
