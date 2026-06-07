@@ -136,3 +136,49 @@ This script builds a Streamlit application that extracts text content from eithe
 * `output_summary=chain.run(docs)`: Passes the loaded documents through the model to execute the summary request.
 * `st.success(output_summary)`: Displays the resulting text in a green success banner on the UI.
 * `except Exception as e: st.exception(f"Exception:{e}")`: A fail-safe block that catches any runtime breakdown (e.g., restricted video transcripts, network timeouts) and safely prints the error stack trace on screen.
+
+
+## Math Gen AI app -> math_gpt.py 
+This script builds a Streamlit-based math and reasoning chatbot. It uses a LangChain agent to dynamically switch between three tools: a **Wikipedia Searcher**, an **LLM-backed Calculator**, and a custom **Logical Reasoning Chain**, all powered by the **Groq Llama 3.3 model**.
+
+1. App Configuration & API Key Guardrails
+* `st.set_page_config(page_title="...", page_icon="🧮")`: Sets the application's browser tab title and favicon.
+* `st.title("Text To Math Problem Solver Using Google Gemma 2")`: Displays the primary heading on the UI.
+* `groq_api_key=st.sidebar.text_input(label="Groq API Key", type="password")`: Securely grabs the Groq API key via a password-style sidebar input.
+* `if not groq_api_key:`: Check if the key field is empty.
+* `st.info(...)` & `st.stop()`: Displays an informational banner asking for the key and halts further execution of the script to prevent code crashes.
+
+2. LLM Initialization
+* `llm=ChatGroq(model="llama-3.3-70b-versatile", groq_api_key=groq_api_key)`: Connects to the Groq API using the high-performing `llama-3.3-70b-versatile` model instance.
+
+3. Tool Setup (Wikipedia & Calculator)
+* `wikipedia_wrapper=WikipediaAPIWrapper()`: Connects to the Wikipedia API framework.
+* `wikipedia_tool=Tool(...)`: Packages the Wikipedia wrapper into a standard LangChain tool with a clear description so the agent knows when to use it for data queries.
+* `math_chain=LLMMathChain.from_llm(llm=llm)`: Sets up a specialized LangChain utility that translates natural language math questions into exact mathematical expressions.
+* `calculator = StructuredTool.from_function(...)`: Converts the math chain into an agent tool named `"Calculator"`, explicitly telling the agent to only pass standard math equations to it.
+
+4. Custom Reasoning Tool Setup
+* `prompt="..."`: Defines a structured template instructing the LLM to logically break down and solve math problems step-by-step.
+* `prompt_template=PromptTemplate(...)`: Converts the raw string into a LangChain `PromptTemplate` parsing object.
+* `chain=LLMChain(llm=llm, prompt=prompt_template)`: Pairs the LLM with the custom logical prompt template.
+* `reasoning_tool = StructuredTool.from_function(...)`: Wraps this logic chain into a tool named `"Reasoning Tool"`, giving the agent a fallback strategy for deep word-problem parsing.
+
+5. Multi-Tool Agent Config & Chat History
+* `assistant_agent=initialize_agent(...)`: Binds the three tools (`Wikipedia`, `Calculator`, `Reasoning Tool`) to the LLM. It relies on the `ZERO_SHOT_REACT_DESCRIPTION` loop mechanism to choose the best tool per step.
+* `if "messages" not in st.session_state:`: Verifies if a conversation log is already initialized for this browser session.
+* `st.session_state["messages"]=[...]`: Initializes history with a greeting from the chatbot if it's a brand new session.
+* `for msg in st.session_state.messages:`: Iterates over the running history array.
+* `st.chat_message(msg["role"]).write(msg['content'])`: Loops and draws previous user/assistant chats out on screen to keep the UI persistent.
+
+6. Main Interaction UI & Execution
+* `question=st.text_area("Enter your question:", "...")`: Renders a multiline text box pre-loaded with a complex word problem involving fruits as a placeholder example.
+* `if st.button("Find my Answer"):`: Watches for a user click to trigger calculations.
+* `if question:`: Validates that the input text area isn't blank.
+* `st.session_state.messages.append(...)` & `st.chat_message("user").write(question)`: Adds the user's question to the session state log and prints it onto the active UI screen.
+* `st_cb=StreamlitCallbackHandler(...)`: Hooks directly into Streamlit to print an expandable box showing the agent's real-time inner thoughts and tool lookups.
+* `response=assistant_agent.run(...)`: Dispatches the full conversation history to the agent to extract the solution.
+* `st.session_state.messages.append(...)`: Saves the agent's final generated calculation text into the history log.
+* `st.write('### Response:')` & `st.success(response)`: Prints a formatted markdown header and presents the final answer in a neat green response banner.
+* `else: st.warning("Please enter the question")`: Throws a warning message alert if the user clicked the button on an empty input field.
+
+
