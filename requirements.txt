@@ -15,4 +15,6 @@ langchain_huggingface
 sentence-transformers
 langsmith
 langgraph
+torchvision
+ddgs
 
