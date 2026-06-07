@@ -182,3 +182,8 @@ This script builds a Streamlit-based math and reasoning chatbot. It uses a LangC
 * `else: st.warning("Please enter the question")`: Throws a warning message alert if the user clicked the button on an empty input field.
 
 
+## HuggingFace Integration -> huggingface_int.py
+* Same Youtube summarizer using Huggingface Endpoint instead of Groq -> only the llm is changed to HF. 
+* It's currently not supporting for HF models for direct text-generation. So, output you will not get.
+
+
