@@ -8,4 +8,11 @@ langchain-groq
 langchain_classic
 faiss-cpu
 pypdf
+arxiv
+wikipedia
+ipykernel
+langchain_huggingface
+sentence-transformers
+langsmith
+langgraph
 
