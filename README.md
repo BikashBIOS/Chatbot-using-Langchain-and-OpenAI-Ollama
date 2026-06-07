@@ -187,3 +187,41 @@ This script builds a Streamlit-based math and reasoning chatbot. It uses a LangC
 * It's currently not supporting for HF models for direct text-generation. So, output you will not get.
 
 
+## PDF Q&A using AstraDB -> pdfquery.ipynb
+1. Login to Astra.Datastax -> Create database (whichever free) -> Generate token and Copy endpoint -> Paste those in ASTRA_TOKEN & ASTRA_EP in .env file.
+2. Follow below code summary:
+* Loading PDF:
+PdfReader('pdfs/confident.pdf'): Initializes the PDF reader object by pointing it to the local file path (pdfs/confident.pdf) and preparing it for text extraction.
+* Raw Text Extraction Loop:
+from typing_extensions import Concatenate: Imports a typing utility (not strictly required for the execution logic here).
+raw_text = '': Initializes an empty string variable to serve as the master accumulator for the entire document's text content.
+for i, page in enumerate(pdfreader.pages):: Iterates through every individual page structure stored within the loaded PDF file sequentially.
+content = page.extract_text(): Triggers the text extraction method on the current page to parse out structural characters into a standard Python string.
+if content: raw_text += content: Performs a safety check to ensure text characters were successfully returned, then appends the extracted page content to the raw_text variable.
+* LLM and Embedding Model Initialization:
+llm = Ollama(model = "llama3.2:1b"): Instructs the local Ollama service to instantiate the lightweight, 1-billion-parameter Llama 3.2 generative language model for text synthesis.
+embedding = OllamaEmbeddings(model="llama3.2:1b"): Instantiates the vector embedding factory from the same Llama 3.2 model backend to map textual words into numerical vector spaces.
+* Connecting to AstraDB Vector Store
+from langchain_astradb import AstraDBVectorStore: Imports the official integration class to connect LangChain structures directly to DataStax AstraDB.
+load_dotenv(): Scans the project directory for a hidden .env file and safely populates its content into the system's active environment variables.
+import os: Imports Python's built-in OS module to read environment strings.
+astra_vector_store = AstraDBVectorStore(...): Connects to your cloud database instance. It provisions or binds to a table named my_chat_tablee1, passing along your model credentials (API Endpoint and Token) and declaring the local Ollama configuration as its vector conversion engine.
+* Splitting Text into Chunk Components:
+from langchain_classic.text_splitter import CharacterTextSplitter: Imports the structural token control framework to subdivide massive continuous documents.
+text_splitter = CharacterTextSplitter(...): Configures a rule-based text splitter object. It breaks text wherever a newline character (\n) occurs, aiming for structural windows of roughly 800 characters per block while intentionally overlapping neighboring chunks by 200 characters to preserve contextual transitions.
+texts = text_splitter.split_text(raw_text): Converts the singular, long raw_text string into an indexed Python list containing multiple smaller text chunks.
+* Vector Database Upsertion :
+astra_vector_store.add_texts(texts[:50]): Takes up to the first 50 sliced text chunks, streams them through the local Ollama embedding mechanism to generate high-dimensional vector representations, and pushes those vector records to AstraDB.
+astra_vector_index = VectorStoreIndexWrapper(...): Packs the raw cloud vector database pipeline inside an optimized LangChain query wrapper class, making automated semantic search and context retrieval seamless.
+* Conversational RAG Loop (Interactive Querying):
+while True:: Enters a persistent, looping terminal prompt state to allow uninterrupted questioning.
+query_text = input(...).strip(): Grabs user inputs from the interactive prompt line and safely trims off empty padding spaces.
+if query_text.lower() == "quit": break: Evaluates terminal exits cleanly when the user explicitly requests to close the session.
+answer = astra_vector_index.query(query_text, llm=llm): Executes the actual RAG operation under the hood:
+Vectorizes the user's string query using your local embedding settings.
+Runs a semantic similarity calculation over the database contents to extract relevant matching context chunks.
+Composes an instructional prompt combining the user's question with those relevant context chunks.
+Feeds that combined text payload into your local Llama 3.2 instance to generate an accurate, verified textual answer.
+astra_vector_store.similarity_search_with_score(query_text, k=4): Performs a direct semantic lookup across the vector indices to return the top 4 matching document chunks (k=4) alongside their relative mathematical distance/similarity coefficients.
+
+
