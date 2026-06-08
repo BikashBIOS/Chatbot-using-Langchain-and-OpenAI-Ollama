@@ -4,8 +4,32 @@
 3. Create .env -> Mention all your API keys (OpenAI, Langchain, Groq)
 4. NOTE : In Langchain, create new project, inside that project -> Create API key -> Copy that in your .env file and then also mention the LANGCHAIN_PROJECT = "project_name"
 
+## Deploy your Apps using Streamlit:
+1. After successfully running any of the below .py files, you can deploy this by below steps:
+2. Create a Github repo.
+3. Upload your .py and requirements.txt in the repo. Commit.
+4. Now open streamlit.io (Streamlit cloud website) -> Create app -> Provide your app.py (name of your py file) and click Deploy.
+5. Once you click deploy, it will open your website that anyone can access. And you can use that to showcase your projects.
 
-## Using OpenAI :
+
+## Deploy your Apps with Huggingface Spaces:
+1. After successfully running any of the below .py files, you can deploy this by below steps:
+2. Create a Github repo.
+3. Upload your .py and requirements.txt in the repo. Commit.
+4. Open Huggingface Spaces -> Create space -> give a name -> add the required info and create. 
+5. Search 'github actions huggingface' -> Copy the yaml code.
+6. Create .github/workflows/main.yaml file in your github repo. 
+7. Paste that code -> In last line run: -> Replace HF_USERNAME and HF_SPACE with your huggingface username and Space repo respectively. 
+8. Ensure to add '--force' at the last of that last line of code. 
+9. Go to Settings of Github Repo -> Secrets and Variables -> Add secret key -> Name - HF_TOKEN and give the HF access key in there and save. 
+10. Then commit all of your codes and then in Actions tab of Github repo -> CI-CD pipeline will start executing. 
+11. If it's successful, then go to your HF repo, and you will find an error for Readme file. 
+12. Go to that Readme file and edit -> Enter the correct details as per the fields provided there and commit your HF repo. 
+13. Copy that edited README code and copy paste in your Github Readme file. 
+14. Then when the CI CD pipeline runs again, then your HF repo App will start running your .py website.
+
+
+## Using OpenAI -> app.py:
 1. Create app.py -> Write your code there
 2. Prompt Template :
 Uses LangChain’s ChatPromptTemplate to structure the conversation.
@@ -30,14 +54,14 @@ Checks if the user has typed a question and presses enter. If true, it invokes t
                                               └───> [Logs Sent to LangSmith Dashboard]
 7. To run the app.py -> streamlit run app.py
 
-## Using Ollama :
+## Using Ollama -> app1.py :
 1. gemma3:270m -> model I installed in my local machine for running ollama (As ollama is a local llm)
 2. Create app1.py
 3. Use the above same code for Ollama also -> Just replace the OpenAI model with Ollama model.
 4. To run -> streamlit app1.py
 
 
-## RagBot -> Upload PDF and ask questions
+## RagBot -> Upload PDF and ask questions -> ragbot.py
 1. Defining the Prompt Template
 What it does: Instructs the LLM on how to behave. It mandates strict reliance on the custom data provided inside the <context> blocks.
 
